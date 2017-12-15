@@ -1,4 +1,4 @@
-package wooter
+package woot
 
 import (
 	"fmt"
