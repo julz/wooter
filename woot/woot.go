@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"code.cloudfoundry.org/lager"
 	specs "github.com/opencontainers/runtime-spec/specs-go"
@@ -121,6 +122,11 @@ func recursiveChown(path string, uid, gid int, logger lager.Logger) error {
 	return filepath.Walk(path, func(name string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
+		}
+
+		if strings.HasPrefix(name, filepath.Join(path, "/home")) {
+			// Do not chown home directories and their content
+			return nil
 		}
 
 		if isSymlink(info) {
