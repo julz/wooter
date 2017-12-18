@@ -1,4 +1,4 @@
-package woot_test
+package wooter_test
 
 import (
 	"io/ioutil"
@@ -9,11 +9,11 @@ import (
 
 	"code.cloudfoundry.org/groot"
 	"code.cloudfoundry.org/lager/lagertest"
-	"github.com/julz/wooter/woot"
+	"github.com/julz/wooter"
 	specs "github.com/opencontainers/runtime-spec/specs-go"
 )
 
-const Maximus = uint32(woot.Maximus)
+const Maximus = uint32(wooter.Maximus)
 
 var testLogger = lagertest.NewTestLogger("w00t")
 
@@ -160,13 +160,13 @@ func createSingleLayerBundle(t *testing.T, driver groot.Driver) specs.Spec {
 	return bundle
 }
 
-func createWoot(t *testing.T, privileged bool) woot.Cp {
+func createWoot(t *testing.T, privileged bool) wooter.Cp {
 	dir, err := ioutil.TempDir("", "woot")
 	if err != nil {
 		t.Fatal("tmpdir", err)
 	}
 
-	return woot.Cp{
+	return wooter.Cp{
 		BaseDir:    dir,
 		Privileged: privileged,
 	}

@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/cloudfoundry/groot"
-	"github.com/julz/wooter/woot"
+	"github.com/julz/wooter"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 		}
 	}
 
-	groot.Run(woot.Cp{
+	groot.Run(wooter.Cp{
 		BaseDir:    "/tmp/scroot",
 		Privileged: privileged,
 	}, grootArgs)
