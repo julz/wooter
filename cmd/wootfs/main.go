@@ -4,8 +4,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cloudfoundry/groot"
+	"code.cloudfoundry.org/groot"
 	"github.com/julz/wooter"
+	"github.com/urfave/cli"
 )
 
 func main() {
@@ -22,5 +23,5 @@ func main() {
 	groot.Run(wooter.Cp{
 		BaseDir:    "/tmp/scroot",
 		Privileged: privileged,
-	}, grootArgs)
+	}, grootArgs, []cli.Flag{})
 }

@@ -41,7 +41,7 @@ func TestExistingAWoot(t *testing.T) {
 		t.Error("expected my-id not to exist before unpacking")
 	}
 
-	if err := w.Unpack(testLogger, "my-layer-id", nil, mytar); err != nil {
+	if _, err := w.Unpack(testLogger, "my-layer-id", nil, mytar); err != nil {
 		t.Errorf("expected unpack to succeed but got error %s", err)
 	}
 
@@ -58,7 +58,7 @@ func TestDeletingAWoot(t *testing.T) {
 
 	w := createWoot(t, false)
 
-	if err := w.Unpack(testLogger, "my-layer-id", nil, mytar); err != nil {
+	if _, err := w.Unpack(testLogger, "my-layer-id", nil, mytar); err != nil {
 		t.Errorf("expected unpack to succeed but got error %s", err)
 	}
 
@@ -84,15 +84,15 @@ func TestWootingWithAParentWoot(t *testing.T) {
 
 	w := createWoot(t, false)
 
-	if err := w.Unpack(testLogger, "my-parent-layer-id", nil, myparenttar); err != nil {
+	if _, err := w.Unpack(testLogger, "my-parent-layer-id", nil, myparenttar); err != nil {
 		t.Errorf("expected unpack to succeed but got error %s", err)
 	}
 
-	if err := w.Unpack(testLogger, "my-layer-id", []string{"my-parent-layer-id"}, mytar); err != nil {
+	if _, err := w.Unpack(testLogger, "my-layer-id", []string{"my-parent-layer-id"}, mytar); err != nil {
 		t.Errorf("expected unpack to succeed but got error %s", err)
 	}
 
-	bundle, err := w.Bundle(testLogger, "my-container-id", []string{"my-parent-layer-id", "my-layer-id"})
+	bundle, err := w.Bundle(testLogger, "my-container-id", []string{"my-parent-layer-id", "my-layer-id"}, 0)
 	if err != nil {
 		t.Errorf("expected creating bundle to succeed but got error %s", err)
 	}
@@ -148,11 +148,11 @@ func createSingleLayerBundle(t *testing.T, driver groot.Driver) specs.Spec {
 		t.Fatal("open mytar", err)
 	}
 
-	if err := driver.Unpack(testLogger, "my-layer-id", nil, mytar); err != nil {
+	if _, err := driver.Unpack(testLogger, "my-layer-id", nil, mytar); err != nil {
 		t.Errorf("expected unpack to succeed but got error %s", err)
 	}
 
-	bundle, err := driver.Bundle(testLogger, "my-container-id", []string{"my-layer-id"})
+	bundle, err := driver.Bundle(testLogger, "my-container-id", []string{"my-layer-id"}, 0)
 	if err != nil {
 		t.Errorf("expected creating bundle to succeed but got error %s", err)
 	}
