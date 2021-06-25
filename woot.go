@@ -6,7 +6,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
+	"code.cloudfoundry.org/groot"
 	"code.cloudfoundry.org/lager"
 	specs "github.com/opencontainers/runtime-spec/specs-go"
 )
@@ -20,7 +22,7 @@ type Cp struct {
 	Privileged bool
 }
 
-func (c Cp) Unpack(logger lager.Logger, layerID string, parentIDs []string, layerTar io.Reader) error {
+func (c Cp) Unpack(logger lager.Logger, layerID string, parentIDs []string, layerTar io.Reader) (int64, error) {
 	logger = logger.Session("unpack")
 	dest := filepath.Join(c.BaseDir, VolumesDir, layerID)
 
@@ -29,7 +31,7 @@ func (c Cp) Unpack(logger lager.Logger, layerID string, parentIDs []string, laye
 	})
 
 	if err := os.MkdirAll(dest, 0755); err != nil {
-		return err
+		return 0, err
 	}
 
 	if len(parentIDs) > 0 {
@@ -42,7 +44,7 @@ func (c Cp) Unpack(logger lager.Logger, layerID string, parentIDs []string, laye
 			})
 			cpCmd := exec.Command("sh", "-c", command)
 			if out, err := cpCmd.CombinedOutput(); err != nil {
-				return fmt.Errorf("%s: %s", string(out), err)
+				return 0, fmt.Errorf("%s: %s", string(out), err)
 			}
 		}
 	}
@@ -54,13 +56,13 @@ func (c Cp) Unpack(logger lager.Logger, layerID string, parentIDs []string, laye
 	tarCmd := exec.Command("tar", "-p", "-x", "-C", dest)
 	tarCmd.Stdin = layerTar
 	if err := tarCmd.Run(); err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return 0, nil
 }
 
-func (c Cp) Bundle(logger lager.Logger, handle string, layerIds []string) (specs.Spec, error) {
+func (c Cp) Bundle(logger lager.Logger, handle string, layerIds []string, diskLimit int64) (specs.Spec, error) {
 	logger = logger.Session("bundle")
 	volumeDir := filepath.Join(c.BaseDir, VolumesDir, layerIds[len(layerIds)-1])
 	destDir := filepath.Join(c.BaseDir, DiffsDir, handle)
@@ -107,6 +109,14 @@ func (c Cp) Delete(logger lager.Logger, id string) error {
 	return err
 }
 
+func (c Cp) Stats(logger lager.Logger, bundleID string) (groot.VolumeStats, error) {
+	return groot.VolumeStats{}, nil
+}
+
+func (c Cp) WriteMetadata(logger lager.Logger, bundleID string, imageMetadata groot.ImageMetadata) error {
+	return nil
+}
+
 func chownToMaximus(path string, logger lager.Logger) error {
 	return recursiveChown(path, Maximus, Maximus, logger)
 }
@@ -121,6 +131,11 @@ func recursiveChown(path string, uid, gid int, logger lager.Logger) error {
 	return filepath.Walk(path, func(name string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
+		}
+
+		if strings.HasPrefix(name, filepath.Join(path, "/home")) {
+			// Do not chown home directories and their content
+			return nil
 		}
 
 		if isSymlink(info) {
